@@ -38,7 +38,7 @@ class MaxScoreRewardManager:
         self.num_examine = num_examine  # the number of batches of decoded responses to print to the console
         self.compute_score = compute_score or _default_compute_score
 
-    def _score_item(self, data_item: DataProtoItem):
+    def _score_item(self, data_item):
         prompt_ids = data_item.batch['prompts']
 
         prompt_length = prompt_ids.shape[-1]
