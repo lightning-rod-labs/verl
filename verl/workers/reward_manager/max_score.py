@@ -122,8 +122,8 @@ class MaxScoreRewardManager:
             if scored_item.data_source not in already_print_data_sources:
                 already_print_data_sources[scored_item.data_source] = 0
 
-            if already_print_data_sources[data_source] < self.num_examine:
-                already_print_data_sources[data_source] += 1
+            if already_print_data_sources[scored_item.data_source] < self.num_examine:
+                already_print_data_sources[scored_item.data_source] += 1
                 print("[prompt]", scored_item.prompt_str)
                 print("[response]", scored_item.response_str)
                 print("[ground_truth]", scored_item.ground_truth)
