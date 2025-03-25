@@ -26,7 +26,6 @@ class ScoredItem:
     data_source: str
     score: float
     valid_response_length: int
-    index: int
 
 
 class MaxScoreRewardManager:
@@ -74,7 +73,6 @@ class MaxScoreRewardManager:
             data_source=data_source,
             score=score,
             valid_response_length=valid_response_length,
-            index=index,
         )
 
     def verify(self, data):
