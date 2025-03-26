@@ -15,3 +15,4 @@
 from .naive import NaiveRewardManager
 from .prime import PrimeRewardManager
 from .max_score import MaxScoreRewardManager
+from .winner_prediction import WinnerPredictionRewardManager

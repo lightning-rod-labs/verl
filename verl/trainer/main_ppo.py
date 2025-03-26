@@ -151,6 +151,9 @@ class TaskRunner:
         elif reward_manager_name == 'max_score':
             from verl.workers.reward_manager import MaxScoreRewardManager
             reward_manager_cls = MaxScoreRewardManager
+        elif reward_manager_name == 'winner_prediction':
+            from verl.workers.reward_manager import WinnerPredictionRewardManager
+            reward_manager_cls = WinnerPredictionRewardManager
         else:
             raise NotImplementedError
 
