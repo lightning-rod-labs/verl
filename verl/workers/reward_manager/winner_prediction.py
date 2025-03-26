@@ -110,22 +110,31 @@ class WinnerPredictionRewardManager:
 
             scored_item = self._score_item(data_item)
             scored_items.append(scored_item)
-        prompt_str_to_min_brier = {}
+        prompt_str_to_min_brier_and_count = {}
         for scored_item in scored_items:
-            if scored_item.prompt_str not in prompt_str_to_min_brier:
-                prompt_str_to_min_brier[scored_item.prompt_str] = scored_item.brier_score
+            current_min_brier, current_count = prompt_str_to_min_brier_and_count.get(
+                scored_item.prompt_str, 
+                (scored_item.brier_score, 0)
+            )
+            if scored_item.brier_score == current_min_brier:
+                prompt_str_to_min_brier_and_count[scored_item.prompt_str] = (
+                    current_min_brier,
+                    current_count + 1
+                )
             else:
-                prompt_str_to_min_brier[scored_item.prompt_str] = min(
-                    prompt_str_to_min_brier[scored_item.prompt_str],
-                    scored_item.brier_score
+                prompt_str_to_min_brier_and_count[scored_item.prompt_str] = (
+                    scored_item.brier_score,
+                    1
                 )
 
         for i in range(len(scored_items)):
             scored_item = scored_items[i]   
 
-            min_brier_for_prompt = prompt_str_to_min_brier[scored_item.prompt_str]
+            min_brier_for_prompt, min_brier_count = prompt_str_to_min_brier_and_count[scored_item.prompt_str]
             sample_reward = 0.0
-            if scored_item.brier_score == min_brier_for_prompt:
+
+            # Only reward when there is a single winner
+            if scored_item.brier_score == min_brier_for_prompt and min_brier_count == 1:
                 if scored_item.resolution not in [0.0, 1.0]:
                     raise ValueError(f"Resolution must be 0 or 1, got {scored_item.resolution}")
                 sample_reward = scored_item.prediction if scored_item.resolution == 0.0 else 1 - scored_item.prediction
