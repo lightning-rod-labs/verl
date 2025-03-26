@@ -140,6 +140,6 @@ class WinnerPredictionRewardManager:
                 print("[prompt]", scored_item.prompt_str)
                 print("[response]", scored_item.response_str)
                 print("[ground_truth]", scored_item.ground_truth)
-                print("[score]", scored_item.score)
-
+                print("[score]", scored_item.prediction)
+                print("[reward]", sample_reward)
         return reward_tensor
