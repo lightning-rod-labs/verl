@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
 from verl import DataProto
 from verl.utils.reward_score import _default_compute_score
 import torch
@@ -62,7 +63,7 @@ class NaiveRewardManager:
         data.batch['acc'] = torch.tensor(scores, dtype=torch.float32, device=prompt_ids.device)
         return scores
 
-    def __call__(self, data: DataProto):
+    def __call__(self, data: DataProto, save_generations_file_name: Optional[str] = None):
         """We will expand this function gradually based on the available datasets"""
 
         # If there is rm score, we directly return rm score. Otherwise, we compute via rm_score_fn
@@ -73,6 +74,7 @@ class NaiveRewardManager:
 
         already_print_data_sources = {}
 
+        scored_items = []
         for i in range(len(data)):
             data_item = data[i]  # DataProtoItem
 
@@ -105,6 +107,13 @@ class NaiveRewardManager:
             )
             reward_tensor[i, valid_response_length - 1] = score
 
+            scored_items.append({
+                'prompt_str': prompt_str,
+                'response_str': response_str,
+                'ground_truth': ground_truth,
+                'score': score
+            })
+
             if data_source not in already_print_data_sources:
                 already_print_data_sources[data_source] = 0
 
@@ -114,5 +123,23 @@ class NaiveRewardManager:
                 print("[response]", response_str)
                 print("[ground_truth]", ground_truth)
                 print("[score]", score)
+
+        if save_generations_file_name:
+            import os
+            import csv
+            
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(save_generations_file_name), exist_ok=True)
+            
+            # Open file in append mode
+            with open(save_generations_file_name, 'a', newline='') as f:
+                writer = csv.writer(f)
+                for i, scored_item in enumerate(scored_items):
+                    writer.writerow([
+                        scored_item['prompt_str'],
+                        scored_item['response_str'],
+                        scored_item['ground_truth']['question_id'],
+                        scored_item['score']
+                    ])
 
         return reward_tensor

@@ -16,7 +16,7 @@ from verl import DataProto
 from verl.utils.reward_score import _default_compute_score
 import torch
 from dataclasses import dataclass
-
+from typing import Optional
 
 @dataclass
 class ScoredItem:
@@ -96,7 +96,7 @@ class WinnerPredictionRewardManager:
         data.batch['acc'] = torch.tensor(scores, dtype=torch.float32, device=prompt_ids.device)
         return scores
 
-    def __call__(self, data: DataProto):
+    def __call__(self, data: DataProto, save_generations_file_name: Optional[str] = None):
         """We will expand this function gradually based on the available datasets"""
 
         # If there is rm score, we directly return rm score. Otherwise, we compute via rm_score_fn
@@ -154,4 +154,27 @@ class WinnerPredictionRewardManager:
                 print("[ground_truth]", scored_item.ground_truth)
                 print("[score]", scored_item.prediction)
                 print("[reward]", sample_reward)
+
+        if save_generations_file_name:
+            import os
+            import csv
+            
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(save_generations_file_name), exist_ok=True)
+            
+            # Open file in append mode
+            with open(save_generations_file_name, 'a', newline='') as f:
+                writer = csv.writer(f)
+                for i in range(len(scored_items)):
+                    scored_item = scored_items[i]
+                    writer.writerow([
+                        scored_item.prompt_str,
+                        scored_item.response_str, 
+                        scored_item.ground_truth['question_id'],
+                        reward_tensor[i, scored_item.valid_response_length - 1].item()
+                    ])
+                
+            
+
+
         return reward_tensor
