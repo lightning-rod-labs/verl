@@ -132,6 +132,7 @@ def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
 
     with torch.no_grad():
         print("Computing GRPO without normalization")
+        # Note: We removed normalization of the rewards that normally happens in GRPO
         scores = scores.unsqueeze(-1).tile([1, response_length]) * eos_mask
 
     return scores, scores
@@ -242,8 +243,9 @@ def compute_remax_outcome_advantage(token_level_rewards: torch.Tensor, reward_ba
 
     with torch.no_grad():
         returns = (token_level_rewards * eos_mask).flip(dims=[-1]).cumsum(dim=-1).flip(dims=[-1])
-        advantages = returns - reward_baselines.unsqueeze(-1).tile([1, response_length]) * eos_mask
-
+        # Removing in order to stop normalization of our rewards
+        #advantages = returns - reward_baselines.unsqueeze(-1).tile([1, response_length]) * eos_mask
+        advantages = returns
     return advantages, returns
 
 
