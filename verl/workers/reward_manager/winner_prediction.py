@@ -69,7 +69,10 @@ class WinnerPredictionRewardManager:
         )
         resolution = ground_truth['resolution']
 
-        brier_score = (resolution - prediction) ** 2
+        if prediction is None:
+            brier_score = 1.0
+        else:
+            brier_score = (resolution - prediction) ** 2
 
         return ScoredItem(
             prompt_str=prompt_str,
@@ -134,7 +137,7 @@ class WinnerPredictionRewardManager:
             sample_reward = 0.0
 
             # Only reward when there is a single winner
-            if scored_item.brier_score == min_brier_for_prompt and min_brier_count == 1:
+            if scored_item.prediction and scored_item.brier_score == min_brier_for_prompt and min_brier_count == 1:
                 if scored_item.resolution not in [0.0, 1.0]:
                     raise ValueError(f"Resolution must be 0 or 1, got {scored_item.resolution}")
                 sample_reward = scored_item.prediction if scored_item.resolution == 0.0 else 1 - scored_item.prediction
