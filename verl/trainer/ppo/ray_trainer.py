@@ -572,6 +572,17 @@ class RayPPOTrainer(object):
 
         self._maybe_log_val_generations(inputs=sample_inputs, outputs=sample_outputs, scores=sample_scores)
 
+        save_generations_file_name = os.path.join(self.config.trainer.default_local_dir, 'validation_generations.csv')
+        
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(save_generations_file_name), exist_ok=True)
+        
+        # Open file in append mode
+        with open(save_generations_file_name, 'a', newline='') as f:
+            writer = csv.writer(f)
+            for input_text, output_text, score in zip(sample_inputs, sample_outputs, sample_scores):
+                writer.writerow([input_text, output_text, score])
+
         reward_tensor = torch.cat(reward_tensor_lst, dim=0).sum(-1).cpu()  # (batch_size,)
         data_sources = np.concatenate(data_source_lst, axis=0)
 

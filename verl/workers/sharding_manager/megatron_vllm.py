@@ -392,6 +392,8 @@ class MegatronVLLMShardingManager(BaseShardingManager):
 
         # add empty cache after each compute
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
 
     def preprocess_data(self, data: DataProto) -> DataProto:
         # prompts are identical for each training tp. We select for each inference tp

@@ -33,6 +33,8 @@ def init_fn(x: torch.nn.Module):
     if not torch.distributed.get_rank() == 0:
         x = x.to_empty(device=torch.cuda.current_device(), recurse=False)
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
     return x
 
 
@@ -130,6 +132,8 @@ def offload_fsdp_model_to_cpu(model: FSDP, empty_cache: bool = True):
         assert id(flat_param._local_shard) != id(flat_param.data)
     if empty_cache:
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
 
 
 @torch.no_grad()

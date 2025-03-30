@@ -91,6 +91,8 @@ class FSDPSGLangShardingManager(BaseShardingManager):
 
         del params
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
         log_gpu_memory_usage('After del state_dict and empty_cache in sharding manager', logger=logger)
 
         # TODO: offload FSDP model weights

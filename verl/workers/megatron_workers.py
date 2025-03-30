@@ -364,6 +364,8 @@ class ActorRolloutRefWorker(MegatronWorker):
                 checkpoint_contents=self.config.actor.checkpoint.contents)
 
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
 
     @register(dispatch_mode=Dispatch.MEGATRON_COMPUTE_PROTO)
     def update_actor(self, data: DataProto):
@@ -387,6 +389,8 @@ class ActorRolloutRefWorker(MegatronWorker):
         output = DataProto(meta_info={'metrics': metrics})
         output = output.to('cpu')
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
         return output
 
     @register(dispatch_mode=Dispatch.MEGATRON_PP_AS_DP_PROTO)
@@ -416,6 +420,8 @@ class ActorRolloutRefWorker(MegatronWorker):
         output = output.to('cpu')
         # clear kv cache
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
         log_gpu_memory_usage('After recompute log prob', logger=logger)
         return output
 
@@ -436,6 +442,8 @@ class ActorRolloutRefWorker(MegatronWorker):
         if self._is_offload_param:
             offload_megatron_param_and_grad(self.ref_module, self._is_offload_grad)
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
         return output
 
     @register(dispatch_mode=Dispatch.MEGATRON_COMPUTE_PROTO)
@@ -451,6 +459,8 @@ class ActorRolloutRefWorker(MegatronWorker):
         output = output.to('cpu')
         # clear kv cache
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
         log_gpu_memory_usage('After recompute log prob', logger=logger)
         return output
 
@@ -580,6 +590,8 @@ class CriticWorker(MegatronWorker):
         optim_config = init_megatron_optim_config(optim_config)
         critic_optimizer = get_megatron_optimizer(model=critic_module, config=optim_config)
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
         return critic_module, critic_optimizer, critic_model_config, optim_config
 
     @register(dispatch_mode=Dispatch.ONE_TO_ALL)
@@ -764,6 +776,8 @@ class RewardModelWorker(MegatronWorker):
 
         # TODO: add more optimizer args into config
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
         return reward_model, rm_model_config
 
     @register(dispatch_mode=Dispatch.ONE_TO_ALL)

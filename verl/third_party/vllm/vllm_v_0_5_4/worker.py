@@ -156,6 +156,8 @@ class Worker(Worker):
 
             _check_if_gpu_supports_dtype(self.model_config.dtype)
             torch.cuda.empty_cache()
+            torch.cuda.reset_peak_memory_stats()
+            torch.cuda.synchronize()
             self.init_gpu_memory = torch.cuda.mem_get_info()[0]
         else:
             raise RuntimeError(f"Not support device type: {self.device_config.device}")
@@ -183,6 +185,8 @@ class Worker(Worker):
         # Profile the memory usage of the model and get the maximum number of
         # cache blocks that can be allocated with the remaining free memory.
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
         # torch.cuda.reset_peak_memory_stats()
 
         # Execute a forward pass with dummy inputs to profile the memory usage
@@ -224,6 +228,8 @@ class Worker(Worker):
         num_cpu_blocks = num_cpu_blocks.item()
         gc.collect()
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
         return num_gpu_blocks, num_cpu_blocks
 
     def _init_cache_engine(self):

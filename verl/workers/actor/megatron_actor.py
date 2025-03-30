@@ -197,6 +197,8 @@ class MegatronPPOActor(BasePPOActor):
 
         # add empty cache after each compute
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
 
         return log_probs
 
@@ -390,5 +392,7 @@ class MegatronPPOActor(BasePPOActor):
 
         # add empty cache after each compute
         torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
 
         return metrics

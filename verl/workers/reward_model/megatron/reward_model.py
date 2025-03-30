@@ -172,6 +172,8 @@ class MegatronRewardModel(BasePPORewardModel):
         else:
             # add empty cache after each compute
             torch.cuda.empty_cache()
+            torch.cuda.reset_peak_memory_stats()
+            torch.cuda.synchronize()
 
         batch = TensorDict({'rm_scores': token_level_rewards}, batch_size=input_ids.shape[0])
 
@@ -258,6 +260,8 @@ class MegatronRewardModel(BasePPORewardModel):
                     param.data = param.data.to('cpu', non_blocking=True)
             self.device = 'cpu'
             torch.cuda.empty_cache()
+            torch.cuda.reset_peak_memory_stats()
+            torch.cuda.synchronize()
 
     def load_params_to_cuda(self):
         if self.device == 'cpu':

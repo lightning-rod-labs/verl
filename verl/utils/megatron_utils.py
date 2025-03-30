@@ -230,6 +230,8 @@ def offload_megatron_param_and_grad(module_list: nn.ModuleList, offload_grad=Fal
                 if offload_grad and param.grad is not None:
                     param.grad = param.grad.to("cpu", non_blocking=True)
     torch.cuda.empty_cache()
+    torch.cuda.reset_peak_memory_stats()
+    torch.cuda.synchronize()
 
 
 def load_megatron_param_and_grad(module_list: nn.ModuleList, device_id, load_grad=False, hybrid_engine=None):
@@ -245,6 +247,8 @@ def load_megatron_param_and_grad(module_list: nn.ModuleList, device_id, load_gra
                 if load_grad and param.grad is not None:
                     param.grad = param.grad.to(device_id, non_blocking=True)
     torch.cuda.empty_cache()
+    torch.cuda.reset_peak_memory_stats()
+    torch.cuda.synchronize()
 
 
 def print_rank_0(message):

@@ -135,6 +135,8 @@ class HFRollout(BaseRollout):
 
         # empty cache before compute old_log_prob
         torch.cuda.empty_cache()
-
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
+        
         self.module.train()
         return DataProto(batch=batch)
