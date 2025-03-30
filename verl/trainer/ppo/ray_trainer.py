@@ -574,6 +574,9 @@ class RayPPOTrainer(object):
 
         save_generations_file_name = os.path.join(self.config.trainer.default_local_dir, 'validation_generations.csv')
         
+        import os
+        import csv
+        
         # Create directory if it doesn't exist
         os.makedirs(os.path.dirname(save_generations_file_name), exist_ok=True)
         
