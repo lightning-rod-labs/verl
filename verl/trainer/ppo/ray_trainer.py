@@ -17,6 +17,7 @@ This trainer supports model-agonistic model initialization with huggingface
 """
 
 import os
+import csv
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -573,9 +574,6 @@ class RayPPOTrainer(object):
         self._maybe_log_val_generations(inputs=sample_inputs, outputs=sample_outputs, scores=sample_scores)
 
         save_generations_file_name = os.path.join(self.config.trainer.default_local_dir, 'validation_generations.csv')
-        
-        import os
-        import csv
         
         # Create directory if it doesn't exist
         os.makedirs(os.path.dirname(save_generations_file_name), exist_ok=True)
