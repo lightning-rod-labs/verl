@@ -880,7 +880,8 @@ class RayPPOTrainer(object):
                             batch = batch.union(reward_tensor)
 
                         # we combine with rule-based rm
-                        reward_tensor = self.reward_fn(batch)
+                        save_generations_file_name = os.path.join(self.config.trainer.default_local_dir, 'generations.csv')
+                        reward_tensor = self.reward_fn(batch, save_generations_file_name=save_generations_file_name)
                         batch.batch['token_level_scores'] = reward_tensor
 
                         # compute rewards. apply_kl_penalty if available
