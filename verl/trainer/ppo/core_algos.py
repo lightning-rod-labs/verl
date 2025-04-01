@@ -244,8 +244,8 @@ def compute_remax_outcome_advantage(token_level_rewards: torch.Tensor, reward_ba
     with torch.no_grad():
         returns = (token_level_rewards * eos_mask).flip(dims=[-1]).cumsum(dim=-1).flip(dims=[-1])
         # Removing in order to stop normalization of our rewards
-        #advantages = returns - reward_baselines.unsqueeze(-1).tile([1, response_length]) * eos_mask
-        advantages = returns
+        advantages = returns - reward_baselines.unsqueeze(-1).tile([1, response_length]) * eos_mask
+        #advantages = returns
     return advantages, returns
 
 
