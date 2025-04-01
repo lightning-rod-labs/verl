@@ -37,6 +37,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--local_dir', required=True, type = str, help="The path for your saved model")
     parser.add_argument("--hf_upload_path", default=False, type = str, help="The path of the huggingface repo to upload")
+    parser.add_argument("--private", default=False, type = bool, help="If the huggingface repo should be private")
     args = parser.parse_args()
 
     assert not args.local_dir.endswith("huggingface"), "The local_dir should not end with huggingface"
@@ -157,7 +158,7 @@ if __name__ == '__main__':
         # Push to hugging face
         from huggingface_hub import HfApi
         api = HfApi()
-        api.create_repo(repo_id=args.hf_upload_path, private=False, exist_ok=True)
+        api.create_repo(repo_id=args.hf_upload_path, private=args.private, exist_ok=True)
         api.upload_folder(
             folder_path=hf_path,
             repo_id=args.hf_upload_path,
