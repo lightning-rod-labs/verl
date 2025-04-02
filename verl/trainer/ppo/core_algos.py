@@ -111,7 +111,8 @@ def compute_gae_advantage_return(token_level_rewards: torch.Tensor, values: torc
 def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
                                    eos_mask: torch.Tensor,
                                    index: torch.Tensor,
-                                   epsilon: float = 1e-6):
+                                   epsilon: float = 1e-6, 
+                                   normalization: bool = True):
     """
     Compute advantage for GRPO, operating only on Outcome reward 
     (with only one scalar reward for each response).
@@ -131,21 +132,23 @@ def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
     scores = token_level_rewards.sum(dim=-1)
 
     with torch.no_grad():
-        print("Computing GRPO with mean averaging")
-        bsz = scores.shape[0]
-        for i in range(bsz):
-            id2score[index[i]].append(scores[i])
-        for idx in id2score:
-            if len(id2score[idx]) == 1:
-                id2mean[idx] = torch.tensor(0.0)
-                id2std[idx] = torch.tensor(1.0)
-            elif len(id2score[idx]) > 1:
-                id2mean[idx] = torch.mean(torch.tensor(id2score[idx]))
-                id2std[idx] = torch.std(torch.tensor([id2score[idx]]))
-            else:
-                raise ValueError(f"no score in prompt index: {idx}")
-        for i in range(bsz):
-            scores[i] = (scores[i] - id2mean[index[i]])
+        if normalization:
+            print("Computing GRPO with mean averaging")
+            bsz = scores.shape[0]
+            for i in range(bsz):
+                id2score[index[i]].append(scores[i])
+            for idx in id2score:
+                if len(id2score[idx]) == 1:
+                    id2mean[idx] = torch.tensor(0.0)
+                    id2std[idx] = torch.tensor(1.0)
+                elif len(id2score[idx]) > 1:
+                    id2mean[idx] = torch.mean(torch.tensor(id2score[idx]))
+                    id2std[idx] = torch.std(torch.tensor([id2score[idx]]))
+                else:
+                    raise ValueError(f"no score in prompt index: {idx}")
+            for i in range(bsz):
+                # Note: We have removed dividing by std to avoid scaling our rewards
+                scores[i] = (scores[i] - id2mean[index[i]])
         scores = scores.unsqueeze(-1).tile([1, response_length]) * eos_mask
 
     return scores, scores
