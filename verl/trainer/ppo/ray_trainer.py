@@ -302,8 +302,11 @@ class RayPPOTrainer(object):
         if self.config.algorithm.adv_estimator == AdvantageEstimator.GAE:
             self.use_critic = True
         elif self.config.algorithm.adv_estimator in [
-                AdvantageEstimator.GRPO, AdvantageEstimator.REINFORCE_PLUS_PLUS, AdvantageEstimator.REMAX,
-                AdvantageEstimator.RLOO
+            AdvantageEstimator.GRPO_MEAN_SUBTRACTION, 
+            AdvantageEstimator.GRPO_NO_NORMALIZATION, 
+            AdvantageEstimator.REINFORCE_PLUS_PLUS, 
+            AdvantageEstimator.REMAX,
+            AdvantageEstimator.RLOO
         ]:
             self.use_critic = False
         else:
