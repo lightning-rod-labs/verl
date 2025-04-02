@@ -20,6 +20,7 @@ from dataclasses import dataclass
 
 @dataclass
 class ParsedSample:
+    data_source: str
     prompt_str: str
     response_str: str
     ground_truth: dict
@@ -63,6 +64,7 @@ class NaiveRewardManager:
             extra_info = data_item.non_tensor_batch.get('extra_info', None)
 
             parsed_samples.append(ParsedSample(
+                data_source=data_source,
                 prompt_str=prompt_str,
                 response_str=response_str,
                 ground_truth=ground_truth,
@@ -119,6 +121,7 @@ class NaiveRewardManager:
             extra_info = data_item.non_tensor_batch.get('extra_info', None)
 
             parsed_samples.append(ParsedSample(
+                data_source=data_source,
                 prompt_str=prompt_str,
                 response_str=response_str,
                 ground_truth=ground_truth,
