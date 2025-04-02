@@ -62,7 +62,6 @@ class NaiveRewardManager:
 
             extra_info = data_item.non_tensor_batch.get('extra_info', None)
 
-
             parsed_samples.append(ParsedSample(
                 prompt_str=prompt_str,
                 response_str=response_str,
@@ -127,6 +126,9 @@ class NaiveRewardManager:
                 valid_response_length=valid_response_length,
             ))
 
+
+        print("Getting compute scores for all samples at once.")
+        print(len(parsed_samples))
         # Pass all samples at once to be computed
         scores = self.compute_score([
             (
