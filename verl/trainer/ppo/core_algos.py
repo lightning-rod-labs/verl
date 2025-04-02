@@ -112,7 +112,7 @@ def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
                                    eos_mask: torch.Tensor,
                                    index: torch.Tensor,
                                    epsilon: float = 1e-6, 
-                                   normalization: bool = True):
+                                   mean_subtraction: bool = False):
     """
     Compute advantage for GRPO, operating only on Outcome reward 
     (with only one scalar reward for each response).
@@ -132,7 +132,7 @@ def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
     scores = token_level_rewards.sum(dim=-1)
 
     with torch.no_grad():
-        if normalization:
+        if mean_subtraction:
             print("Computing GRPO with mean averaging")
             bsz = scores.shape[0]
             for i in range(bsz):
