@@ -16,7 +16,16 @@ from typing import Optional
 from verl import DataProto
 from verl.utils.reward_score import _default_compute_score
 import torch
+from dataclasses import dataclass
 
+@dataclass
+class ParsedSample:
+    data_source: str
+    prompt_str: str
+    response_str: str
+    ground_truth: dict
+    extra_info: dict
+    valid_response_length: int
 
 class NaiveRewardManager:
     """The reward manager.
@@ -29,6 +38,7 @@ class NaiveRewardManager:
 
     def verify(self, data):
         scores = []
+        parsed_samples = []
         for i in range(len(data)):
             data_item = data[i]  # DataProtoItem
 
@@ -53,13 +63,25 @@ class NaiveRewardManager:
 
             extra_info = data_item.non_tensor_batch.get('extra_info', None)
 
-            score = self.compute_score(
+            parsed_samples.append(ParsedSample(
                 data_source=data_source,
-                solution_str=response_str,
+                prompt_str=prompt_str,
+                response_str=response_str,
                 ground_truth=ground_truth,
                 extra_info=extra_info,
-            )
-            scores.append(score)
+                valid_response_length=valid_response_length,
+            ))
+
+
+        # Pass all samples at once to be computed
+        scores = self.compute_score([
+            (
+                parsed_sample.data_source,
+                parsed_sample.response_str,
+                parsed_sample.ground_truth,
+                parsed_sample.extra_info,
+            ) for parsed_sample in parsed_samples])
+        
         data.batch['acc'] = torch.tensor(scores, dtype=torch.float32, device=prompt_ids.device)
         return scores
 
@@ -72,9 +94,8 @@ class NaiveRewardManager:
 
         reward_tensor = torch.zeros_like(data.batch['responses'], dtype=torch.float32)
 
-        already_print_data_sources = {}
 
-        scored_items = []
+        parsed_samples = []
         for i in range(len(data)):
             data_item = data[i]  # DataProtoItem
 
@@ -99,30 +120,32 @@ class NaiveRewardManager:
 
             extra_info = data_item.non_tensor_batch.get('extra_info', None)
 
-            score = self.compute_score(
+            parsed_samples.append(ParsedSample(
                 data_source=data_source,
-                solution_str=response_str,
+                prompt_str=prompt_str,
+                response_str=response_str,
                 ground_truth=ground_truth,
                 extra_info=extra_info,
-            )
-            reward_tensor[i, valid_response_length - 1] = score
+                valid_response_length=valid_response_length,
+            ))
 
-            scored_items.append({
-                'prompt_str': prompt_str,
-                'response_str': response_str,
-                'ground_truth': ground_truth,
-                'score': score
-            })
 
-            if data_source not in already_print_data_sources:
-                already_print_data_sources[data_source] = 0
+        print("Getting compute scores for all samples at once.")
+        print(len(parsed_samples))
+        # Pass all samples at once to be computed
+        scores = self.compute_score([
+            (
+                parsed_sample.data_source,
+                parsed_sample.response_str,
+                parsed_sample.ground_truth,
+                parsed_sample.extra_info,
+            ) for parsed_sample in parsed_samples])
 
-            if already_print_data_sources[data_source] < self.num_examine:
-                already_print_data_sources[data_source] += 1
-                print("[prompt]", prompt_str)
-                print("[response]", response_str)
-                print("[ground_truth]", ground_truth)
-                print("[score]", score)
+        for i in range(len(data)):
+            parsed_sample = parsed_samples[i]
+            score = scores[i]
+
+            reward_tensor[i, parsed_sample.valid_response_length - 1] = score
 
         if save_generations_file_name:
             import os
@@ -134,12 +157,13 @@ class NaiveRewardManager:
             # Open file in append mode
             with open(save_generations_file_name, 'a', newline='') as f:
                 writer = csv.writer(f)
-                for i, scored_item in enumerate(scored_items):
+                for i, parsed_sample in enumerate(parsed_samples):
+                    score = scores[i]
                     writer.writerow([
-                        scored_item['prompt_str'],
-                        scored_item['response_str'],
-                        scored_item['ground_truth']['question_id'],
-                        scored_item['score']
+                        parsed_sample.prompt_str,
+                        parsed_sample.response_str,
+                        parsed_sample.ground_truth['question_id'],
+                        score
                     ])
 
         return reward_tensor
