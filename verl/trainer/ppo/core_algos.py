@@ -23,7 +23,7 @@ import torch
 from collections import defaultdict
 
 import verl.utils.torch_functional as verl_F
-
+from verl.trainer.ppo.ray_trainer import AdvantageEstimator
 
 class AdaptiveKLController:
     """
@@ -112,7 +112,7 @@ def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
                                    eos_mask: torch.Tensor,
                                    index: torch.Tensor,
                                    epsilon: float = 1e-6, 
-                                   mean_subtraction: bool = False):
+                                   adv_estimator: str = 'grpo'):
     """
     Compute advantage for GRPO, operating only on Outcome reward 
     (with only one scalar reward for each response).
@@ -133,23 +133,31 @@ def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
 
     id2score = defaultdict(list)
     id2mean = {}
+    id2std = {}
 
     with torch.no_grad():
-        if mean_subtraction:
-            print("Computing GRPO with mean averaging")
-            bsz = scores.shape[0]
-            for i in range(bsz):
-                id2score[index[i]].append(scores[i])
-            for idx in id2score:
-                if len(id2score[idx]) == 1:
-                    id2mean[idx] = torch.tensor(0.0)
-                elif len(id2score[idx]) > 1:
-                    id2mean[idx] = torch.mean(torch.tensor(id2score[idx]))
-                else:
-                    raise ValueError(f"no score in prompt index: {idx}")
-            for i in range(bsz):
-                # Note: We have removed dividing by std to avoid scaling our rewards
+        print("Computing GRPO with mean averaging")
+        bsz = scores.shape[0]
+        for i in range(bsz):
+            id2score[index[i]].append(scores[i])
+        for idx in id2score:
+            if len(id2score[idx]) == 1:
+                id2mean[idx] = torch.tensor(0.0)
+                id2std[idx] = torch.tensor(1.0)
+            elif len(id2score[idx]) > 1:
+                id2mean[idx] = torch.mean(torch.tensor(id2score[idx]))
+                id2std[idx] = torch.std(torch.tensor([id2score[idx]]))
+            else:
+                raise ValueError(f"no score in prompt index: {idx}")
+        for i in range(bsz):
+            if adv_estimator == AdvantageEstimator.GRPO:
+                scores[i] = (scores[i] - id2mean[index[i]]) / (id2std[index[i]] + epsilon)
+            elif adv_estimator == AdvantageEstimator.GRPO_MEAN_SUBTRACTION: 
                 scores[i] = (scores[i] - id2mean[index[i]])
+            elif adv_estimator == AdvantageEstimator.GRPO_NO_NORMALIZATION:
+                scores[i] = scores[i]
+            else:
+                raise ValueError(f"unknown adv_estimator: {adv_estimator}")
         scores = scores.unsqueeze(-1).tile([1, response_length]) * eos_mask
 
     return scores, scores
