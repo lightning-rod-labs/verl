@@ -61,21 +61,6 @@ class Role(Enum):
     ActorRolloutRef = 6
 
 
-<<<<<<< Updated upstream
-class AdvantageEstimator(str, Enum):
-    """
-    Using an enumeration class to avoid spelling errors in adv_estimator
-    """
-    GAE = 'gae'
-    GRPO_MEAN_SUBTRACTION = 'grpo_mean_subtraction'
-    GRPO_NO_NORMALIZATION = 'grpo_no_normalization'
-    REINFORCE_PLUS_PLUS = 'reinforce_plus_plus'
-    REMAX = 'remax'
-    RLOO = 'rloo'
-
-=======
->>>>>>> Stashed changes
-
 @dataclass
 class ResourcePoolManager:
     """
@@ -188,7 +173,7 @@ def compute_advantage(data: DataProto, adv_estimator, gamma=1.0, lam=1.0, num_re
                                                                       lam=lam)
         data.batch['advantages'] = advantages
         data.batch['returns'] = returns
-    elif adv_estimator == AdvantageEstimator.GRPO_MEAN_SUBTRACTION or adv_estimator == AdvantageEstimator.GRPO_NO_NORMALIZATION:
+    elif adv_estimator == AdvantageEstimator.GRPO or adv_estimator == AdvantageEstimator.GRPO_MEAN_SUBTRACTION or adv_estimator == AdvantageEstimator.GRPO_NO_NORMALIZATION:
         token_level_rewards = data.batch['token_level_rewards']
         index = data.non_tensor_batch['uid']
         responses = data.batch['responses']
@@ -198,7 +183,7 @@ def compute_advantage(data: DataProto, adv_estimator, gamma=1.0, lam=1.0, num_re
         advantages, returns = core_algos.compute_grpo_outcome_advantage(token_level_rewards=token_level_rewards,
                                                                         eos_mask=response_mask,
                                                                         index=index, 
-                                                                        mean_subtraction=adv_estimator == AdvantageEstimator.GRPO_MEAN_SUBTRACTION)
+                                                                        adv_estimator=adv_estimator)
         data.batch['advantages'] = advantages
         data.batch['returns'] = returns
     elif adv_estimator == AdvantageEstimator.REINFORCE_PLUS_PLUS:
@@ -306,6 +291,7 @@ class RayPPOTrainer(object):
         if self.config.algorithm.adv_estimator == AdvantageEstimator.GAE:
             self.use_critic = True
         elif self.config.algorithm.adv_estimator in [
+            AdvantageEstimator.GRPO, 
             AdvantageEstimator.GRPO_MEAN_SUBTRACTION, 
             AdvantageEstimator.GRPO_NO_NORMALIZATION, 
             AdvantageEstimator.REINFORCE_PLUS_PLUS, 
