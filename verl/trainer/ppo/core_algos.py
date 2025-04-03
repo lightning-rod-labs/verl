@@ -112,7 +112,7 @@ def compute_grpo_outcome_advantage(token_level_rewards: torch.Tensor,
                                    eos_mask: torch.Tensor,
                                    index: torch.Tensor,
                                    epsilon: float = 1e-6, 
-                                   adv_estimator: str = 'grpo'):
+                                   adv_estimator: AdvantageEstimator = AdvantageEstimator.GRPO):
     """
     Compute advantage for GRPO, operating only on Outcome reward 
     (with only one scalar reward for each response).
