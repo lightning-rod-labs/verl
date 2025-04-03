@@ -23,7 +23,11 @@ import torch
 from collections import defaultdict
 
 import verl.utils.torch_functional as verl_F
+<<<<<<< Updated upstream
 
+=======
+from verl.trainer.ppo.advantage_estimators import AdvantageEstimator
+>>>>>>> Stashed changes
 
 class AdaptiveKLController:
     """

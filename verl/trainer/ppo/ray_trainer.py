@@ -43,6 +43,7 @@ from verl.utils.dataset.rl_dataset import RLHFDataset, collate_fn
 from verl.utils.tracking import ValidationGenerationsLogger
 from torch.utils.data import RandomSampler, SequentialSampler
 from torchdata.stateful_dataloader import StatefulDataLoader
+from verl.trainer.ppo.advantage_estimators import AdvantageEstimator
 
 WorkerType = Type[Worker]
 
@@ -60,6 +61,7 @@ class Role(Enum):
     ActorRolloutRef = 6
 
 
+<<<<<<< Updated upstream
 class AdvantageEstimator(str, Enum):
     """
     Using an enumeration class to avoid spelling errors in adv_estimator
@@ -71,6 +73,8 @@ class AdvantageEstimator(str, Enum):
     REMAX = 'remax'
     RLOO = 'rloo'
 
+=======
+>>>>>>> Stashed changes
 
 @dataclass
 class ResourcePoolManager:
